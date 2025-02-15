@@ -1,0 +1,50 @@
+"""we import tkinter library for creating GUI for this program"""
+import tkinter as tk
+
+def convert_temperature():
+    """Converts temperature between Celsius, Fahrenheit, and Kelvin."""
+    try:
+        temperature = float(entry_temperature.get())
+
+        if variable.get() == "Celsius":
+            fahrenheit = (temperature * 9/5) + 32
+            kelvin = temperature + 273.15
+            result_label.config(text=f"{temperature:.2f} °C = {fahrenheit:.2f} °F = {kelvin:.2f} K")
+        elif variable.get() == "Fahrenheit":
+            celsius = (temperature - 32) * 5/9
+            kelvin = celsius + 273.15
+            result_label.config(text=f"{temperature:.2f} °F = {celsius:.2f} °C = {kelvin:.2f} K")
+        else:  # Kelvin
+            celsius = temperature - 273.15
+            fahrenheit = (celsius * 9/5) + 32
+            result_label.config(text=f"{temperature:.2f} K = {celsius:.2f} °C = {fahrenheit:.2f} °F")
+
+    except ValueError:
+        result_label.config(text="Invalid input. Please enter a number.")
+
+# Create the main window
+window = tk.Tk()
+window.title("Temperature Converter")
+
+# Create widgets
+frame = tk.Frame(window)
+frame.pack()
+
+entry_temperature = tk.Entry(frame)
+entry_temperature.grid(row=0, column=0, padx=5, pady=5)
+
+variable = tk.StringVar(window)
+variable.set("Celsius")  # Default value
+
+options = ["Celsius", "Fahrenheit", "Kelvin"]
+dropdown = tk.OptionMenu(frame, variable, *options)
+dropdown.grid(row=0, column=1, padx=5, pady=5)
+
+convert_button = tk.Button(frame, text="Convert", command=convert_temperature)
+convert_button.grid(row=1, column=0, columnspan=2, pady=5)
+
+result_label = tk.Label(frame, text="")
+result_label.grid(row=2, column=0, columnspan=2, pady=5)
+
+# Start the GUI event loop
+window.mainloop()
