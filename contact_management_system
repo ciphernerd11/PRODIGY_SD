@@ -1,0 +1,148 @@
+import tkinter as tk
+from tkinter import messagebox
+import json
+
+def load_contacts():
+    try:
+        with open("contacts.json", "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+def save_contacts():
+    with open("contacts.json", "w") as f:
+        json.dump(contacts, f)
+
+contacts = load_contacts()
+
+def add_contact():
+    name = name_entry.get()
+    phone = phone_entry.get()
+    email = email_entry.get()
+
+    if not name:
+        messagebox.showerror("Error", "Name cannot be empty.")
+        return
+
+    if name in contacts:
+         messagebox.showerror("Error", "Contact with this name already exists.")
+         return
+
+    contacts[name] = {"phone": phone, "email": email}
+    save_contacts()
+    clear_entries()
+    update_contact_list()
+
+def view_contacts():
+    contact_list_window = tk.Toplevel(window)  # Create a new window for the list
+    contact_list_window.title("Contact List")
+
+    listbox = tk.Listbox(contact_list_window, width=50)
+    listbox.pack(padx=10, pady=10)
+
+    for name, info in contacts.items():
+        listbox.insert(tk.END, f"{name}: {info['phone']}, {info['email']}")
+
+def edit_contact():
+    selected_contact = contact_listbox.curselection()
+    if not selected_contact:
+        messagebox.showerror("Error", "No contact selected.")
+        return
+
+    name_to_edit = list(contacts.keys())[selected_contact[0]] # Get the name
+    edit_window = tk.Toplevel(window)
+    edit_window.title(f"Edit {name_to_edit}")
+
+    edit_name_label = tk.Label(edit_window, text="Name:")
+    edit_name_label.grid(row=0, column=0, sticky="w")
+    edit_name_entry = tk.Entry(edit_window)
+    edit_name_entry.insert(0, name_to_edit) # Populate with the old name
+    edit_name_entry.grid(row=0, column=1, padx=5, pady=5)
+    edit_name_entry.config(state=tk.DISABLED) # Disable name editing as it's the key
+
+    edit_phone_label = tk.Label(edit_window, text="Phone:")
+    edit_phone_label.grid(row=1, column=0, sticky="w")
+    edit_phone_entry = tk.Entry(edit_window)
+    edit_phone_entry.insert(0, contacts[name_to_edit]["phone"])
+    edit_phone_entry.grid(row=1, column=1, padx=5, pady=5)
+
+    edit_email_label = tk.Label(edit_window, text="Email:")
+    edit_email_label.grid(row=2, column=0, sticky="w")
+    edit_email_entry = tk.Entry(edit_window)
+    edit_email_entry.insert(0, contacts[name_to_edit]["email"])
+    edit_email_entry.grid(row=2, column=1, padx=5, pady=5)
+
+    def save_edit():
+        new_phone = edit_phone_entry.get()
+        new_email = edit_email_entry.get()
+        contacts[name_to_edit]["phone"] = new_phone
+        contacts[name_to_edit]["email"] = new_email
+        save_contacts()
+        update_contact_list()
+        edit_window.destroy()
+
+    save_button = tk.Button(edit_window, text="Save", command=save_edit)
+    save_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+def delete_contact():
+    selected_contact = contact_listbox.curselection()
+    if not selected_contact:
+        messagebox.showerror("Error", "No contact selected.")
+        return
+
+    name_to_delete = list(contacts.keys())[selected_contact[0]]
+    if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete {name_to_delete}?"):
+        del contacts[name_to_delete]
+        save_contacts()
+        update_contact_list()
+
+def update_contact_list():
+    contact_listbox.delete(0, tk.END)  # Clear the listbox
+    for name, info in contacts.items():
+        contact_listbox.insert(tk.END, f"{name}: {info['phone']}, {info['email']}")
+
+def clear_entries():
+    name_entry.delete(0, tk.END)
+    phone_entry.delete(0, tk.END)
+    email_entry.delete(0, tk.END)
+
+# GUI setup
+window = tk.Tk()
+window.title("Contact Manager")
+
+# Labels and entries
+name_label = tk.Label(window, text="Name:")
+name_label.grid(row=0, column=0, sticky="w")
+name_entry = tk.Entry(window)
+name_entry.grid(row=0, column=1, padx=5, pady=5)
+
+phone_label = tk.Label(window, text="Phone:")
+phone_label.grid(row=1, column=0, sticky="w")
+phone_entry = tk.Entry(window)
+phone_entry.grid(row=1, column=1, padx=5, pady=5)
+
+email_label = tk.Label(window, text="Email:")
+email_label.grid(row=2, column=0, sticky="w")
+email_entry = tk.Entry(window)
+email_entry.grid(row=2, column=1, padx=5, pady=5)
+
+# Buttons
+add_button = tk.Button(window, text="Add Contact", command=add_contact)
+add_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+view_button = tk.Button(window, text="View Contacts", command=view_contacts)
+view_button.grid(row=4, column=0, columnspan=2, pady=(0, 10))
+
+# Contact List (using a Listbox)
+contact_listbox = tk.Listbox(window, width=50)
+contact_listbox.grid(row=5, column=0, columnspan=2, padx=10, pady=(0,10))
+update_contact_list() # Populate the listbox initially
+
+# Edit and Delete buttons (related to the listbox)
+edit_button = tk.Button(window, text="Edit Contact", command=edit_contact)
+edit_button.grid(row=6, column=0, pady=(0,10))
+
+delete_button = tk.Button(window, text="Delete Contact", command=delete_contact)
+delete_button.grid(row=6, column=1, pady=(0,10))
+
+window.mainloop()
